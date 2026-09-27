@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>NutriNeuro – Redirecting...</title>
+    <script>
+      // Single Page App automatic router/redirect for GitHub Pages
+      var l = window.location;
+      var path = l.pathname;
+      // Handle case sensitivity (e.g. /nutrient -> /Nutrient/)
+      if (path.toLowerCase().indexOf('/nutrient') !== -1) {
+        var cleanPath = path.replace(/^\/nutrient/i, '/Nutrient');
+        if (cleanPath === '/Nutrient' || cleanPath === '/Nutrient/' || cleanPath.indexOf('/docs') !== -1) {
+          l.replace('/Nutrient/' + l.search + l.hash);
+        } else {
+          l.replace('/Nutrient/' + l.search + l.hash);
+        }
+      } else {
+        l.replace('/Nutrient/' + l.search + l.hash);
+      }
+    </script>
+  </head>
+  <body style="background:#090d16;color:#22d3ee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+    <p>Lade NutriNeuro...</p>
+  </body>
+</html>
