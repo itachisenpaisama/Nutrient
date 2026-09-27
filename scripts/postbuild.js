@@ -26,6 +26,17 @@ function copyFolderSync(src, dest) {
   }
 }
 
+function stripRedirectFromDocsIndex(filePath) {
+  if (fs.existsSync(filePath)) {
+    let content = fs.readFileSync(filePath, 'utf-8');
+    content = content.replace(
+      /\/\/ If served on GitHub Pages root[\s\S]*?window\.location\.replace\(base \+ 'docs\/'[\s\S]*?}/g,
+      '// Docs standalone build active - no redirect needed'
+    );
+    fs.writeFileSync(filePath, content, 'utf-8');
+  }
+}
+
 console.log('--- Post-build: Synchronizing GitHub Pages artifacts ---');
 
 if (fs.existsSync(distDir)) {
@@ -36,16 +47,19 @@ if (fs.existsSync(distDir)) {
   console.log('Populating dist/docs with standalone bundle...');
   copyFolderSync(distDir, distDocsDir);
   fs.writeFileSync(path.join(distDocsDir, '.nojekyll'), '');
+  stripRedirectFromDocsIndex(path.join(distDocsDir, 'index.html'));
 
   // 3. Populate root docs/ for fallback branch deployment
   console.log('Populating root docs/ directory for fallback deployment...');
   copyFolderSync(distDir, repoDocsDir);
   fs.writeFileSync(path.join(repoDocsDir, '.nojekyll'), '');
+  stripRedirectFromDocsIndex(path.join(repoDocsDir, 'index.html'));
 
   // 4. Ensure repoDocsDir also has a docs/ subfolder
   const repoDocsDocsDir = path.join(repoDocsDir, 'docs');
   copyFolderSync(distDir, repoDocsDocsDir);
   fs.writeFileSync(path.join(repoDocsDocsDir, '.nojekyll'), '');
+  stripRedirectFromDocsIndex(path.join(repoDocsDocsDir, 'index.html'));
 
   console.log('--- Post-build: Completed successfully ---');
 } else {

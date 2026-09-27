@@ -40,6 +40,12 @@
         sessionStorage.removeItem('nutri_redirect_count');
         sessionStorage.removeItem('nutri_redirect_time');
       } catch (e) {}
+
+      // If served on GitHub Pages root, forward to docs/ where compiled production bundle lives
+      if (window.location.hostname.includes('github.io') && !window.location.pathname.includes('/docs')) {
+        var base = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
+        window.location.replace(base + 'docs/' + window.location.search + window.location.hash);
+      }
     </script>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 font-sans antialiased text-slate-900 dark:text-slate-100">
