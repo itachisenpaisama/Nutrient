@@ -6,6 +6,11 @@
     <title>NutriNeuro – Nährstoff-Tracking &amp; Neuro-Profiling Engine</title>
     <meta name="description" content="Evidenzbasiertes Nährstoff-Tracking, Kaskaden-Makroberechnung, Kofaktoren-Checks für ADHS/Autismus, Kinetik-Validierung und Pearson-Korrelationen." />
     
+    <!-- Cache Control: prevent stale redirect caching on iOS Safari -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <!-- Icons & Favicons -->
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
@@ -28,6 +33,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+      // Clear any stale redirect tracking
+      try {
+        sessionStorage.removeItem('nutri_redirect_count');
+        sessionStorage.removeItem('nutri_redirect_time');
+      } catch (e) {}
+    </script>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 font-sans antialiased text-slate-900 dark:text-slate-100">
     <div id="root"></div>
