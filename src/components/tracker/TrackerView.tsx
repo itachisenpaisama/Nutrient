@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DailyLogSummary, NutrientPlan, UserProfile, LogEntry } from '../../types';
 import { Language, TRANSLATIONS } from '../../i18n/translations';
+import { CustomFoodModal } from './CustomFoodModal';
 import {
   UtensilsCrossed,
   Plus,
@@ -10,7 +11,8 @@ import {
   Calendar,
   Clock,
   ShieldCheck,
-  Activity
+  Activity,
+  ChefHat
 } from 'lucide-react';
 
 interface TrackerViewProps {
@@ -41,6 +43,7 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
   onDeleteEntry
 }) => {
   const t = TRANSLATIONS[lang];
+  const [isCustomFoodModalOpen, setIsCustomFoodModalOpen] = useState(false);
 
   const currentLog = logs.find((l) => l.date === selectedDate) || {
     date: selectedDate,
@@ -104,6 +107,13 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
           >
             <Plus className="w-4 h-4" />
             <span>Mahlzeit</span>
+          </button>
+          <button
+            onClick={() => setIsCustomFoodModalOpen(true)}
+            className="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold border border-cyan-500/40 text-cyan-700 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 transition shadow-xs cursor-pointer"
+          >
+            <ChefHat className="w-4 h-4" />
+            <span>Eigenes Gericht</span>
           </button>
           <button
             onClick={onAddMedication}
@@ -265,6 +275,13 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Custom Food Creation Modal */}
+      <CustomFoodModal
+        isOpen={isCustomFoodModalOpen}
+        onClose={() => setIsCustomFoodModalOpen(false)}
+        onFoodSaved={() => {}}
+      />
     </div>
   );
 };

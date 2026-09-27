@@ -1,4 +1,4 @@
-import { UserProfile, DailyLogSummary, NutrientPlan, PlanRecommendation } from '../types';
+import { UserProfile, DailyLogSummary, NutrientPlan, PlanRecommendation, FoodItem } from '../types';
 import { DEMO_PROFILE, generate30DaysDemoLogs } from '../data/demoDataset';
 import { calculateNutrientPlan } from './calculationEngine';
 import { perform30DayToxicologyAudit } from './toxicologyEngine';
@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   LOGS: 'nutri_vault_logs',
   PLAN: 'nutri_vault_plan',
   RECOMMENDATIONS: 'nutri_vault_recommendations',
+  CUSTOM_FOODS: 'nutri_vault_custom_foods',
   THEME: 'nutri_vault_theme',
   LANG: 'nutri_vault_lang'
 };
@@ -27,7 +28,15 @@ export class StorageService {
   static getProfile(): UserProfile {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.PROFILE);
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed: UserProfile = JSON.parse(data);
+        // Ensure medications array is present
+        if (!parsed.medications || !Array.isArray(parsed.medications)) {
+          parsed.medications =
+            parsed.medication && parsed.medication !== 'NONE' ? [parsed.medication] : [];
+        }
+        return parsed;
+      }
     } catch (e) {
       console.error('Failed reading profile from storage', e);
     }
@@ -36,9 +45,18 @@ export class StorageService {
 
   static saveProfile(profile: UserProfile): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile, null, 2));
+      // Keep legacy medication synced with first element if present
+      const primaryMed =
+        profile.medications && profile.medications.length > 0 ? profile.medications[0] : 'NONE';
+      const normalized: UserProfile = {
+        ...profile,
+        medication: primaryMed,
+        medications: profile.medications || (primaryMed !== 'NONE' ? [primaryMed] : [])
+      };
+
+      localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(normalized, null, 2));
       // Auto-recalculate and save plan
-      const plan = calculateNutrientPlan(profile);
+      const plan = calculateNutrientPlan(normalized);
       this.savePlan(plan);
     } catch (e) {
       console.error('Failed saving profile', e);
@@ -89,6 +107,44 @@ export class StorageService {
     }
   }
 
+  static getCustomFoods(): FoodItem[] {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.CUSTOM_FOODS);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed reading custom foods', e);
+    }
+    return [];
+  }
+
+  static saveCustomFood(food: FoodItem): void {
+    try {
+      const list = this.getCustomFoods();
+      const existingIdx = list.findIndex((f) => f.id === food.id);
+      const taggedFood: FoodItem = { ...food, isCustom: true };
+      if (existingIdx >= 0) {
+        list[existingIdx] = taggedFood;
+      } else {
+        list.push(taggedFood);
+      }
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_FOODS, JSON.stringify(list, null, 2));
+    } catch (e) {
+      console.error('Failed saving custom food', e);
+    }
+  }
+
+  static deleteCustomFood(id: string): void {
+    try {
+      const list = this.getCustomFoods().filter((f) => f.id !== id);
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_FOODS, JSON.stringify(list, null, 2));
+    } catch (e) {
+      console.error('Failed deleting custom food', e);
+    }
+  }
+
   static getRecommendations(): PlanRecommendation[] {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.RECOMMENDATIONS);
@@ -121,6 +177,7 @@ export class StorageService {
     const profile = this.getProfile();
     const plan = this.getPlan(profile);
     const logs = this.getLogs();
+    const customFoods = this.getCustomFoods();
     const toxicology = perform30DayToxicologyAudit(logs);
     const { correlations, recommendations } = computeDiagnosticsAndInsights(logs, profile);
 
@@ -161,6 +218,7 @@ export class StorageService {
 
     const profileJson = JSON.stringify(profile, null, 2);
     const planJson = JSON.stringify(plan, null, 2);
+    const customFoodsJson = JSON.stringify(customFoods, null, 2);
     const toxiJson = JSON.stringify(toxicology, null, 2);
     const analyticsJson = JSON.stringify({ correlations, recommendations }, null, 2);
 
@@ -196,6 +254,21 @@ export class StorageService {
               sizeBytes: planJson.length,
               lastModified: new Date().toISOString(),
               content: planJson
+            }
+          ]
+        },
+        {
+          name: 'foods',
+          path: 'nutri_vault/foods',
+          type: 'folder',
+          children: [
+            {
+              name: 'custom_foods.json',
+              path: 'nutri_vault/foods/custom_foods.json',
+              type: 'file',
+              sizeBytes: customFoodsJson.length,
+              lastModified: new Date().toISOString(),
+              content: customFoodsJson
             }
           ]
         },
@@ -256,7 +329,7 @@ export class StorageService {
   static exportFullVaultAsJson(): void {
     const vault = this.getStructuredFileVault();
     const exportBundle = {
-      exportVersion: '1.0',
+      exportVersion: '1.1',
       exportedAt: new Date().toISOString(),
       vault
     };
@@ -277,6 +350,9 @@ export class StorageService {
           }
           if (child.name === 'plans' && child.children?.[0]?.content) {
             localStorage.setItem(STORAGE_KEYS.PLAN, child.children[0].content);
+          }
+          if (child.name === 'foods' && child.children?.[0]?.content) {
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_FOODS, child.children[0].content);
           }
         }
       }

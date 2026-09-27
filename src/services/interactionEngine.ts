@@ -12,10 +12,13 @@ export function validateItemAddition(
   existingEntries: LogEntry[]
 ): ValidationCheckResult {
   const normName = itemNameOrId.toLowerCase();
-  const med = profile.medication;
+  const meds = profile.medications || (profile.medication && profile.medication !== 'NONE' ? [profile.medication] : []);
+  const hasSsriOrSnri = meds.includes('SSRI') || meds.includes('SNRI');
+  const hasStimulant = meds.includes('METHYLPHENIDATE') || meds.includes('LISDEXAMFETAMINE');
+  const hasIronMed = meds.includes('IRON_SUPPLEMENT');
 
-  // 1. CRITICAL_LOCK: SSRI + 5-HTP or L-Tryptophan
-  if (med === 'SSRI') {
+  // 1. CRITICAL_LOCK: SSRI / SNRI + 5-HTP or L-Tryptophan
+  if (hasSsriOrSnri) {
     if (
       normName.includes('5-htp') ||
       normName.includes('tryptophan') ||
@@ -74,8 +77,8 @@ export function validateItemAddition(
     }
   }
 
-  // 2. WARNING: Methylphenidate + Vitamin C or Citrus within 90-120 minutes
-  if (med === 'METHYLPHENIDATE' || med === 'LISDEXAMFETAMINE') {
+  // 2. WARNING: Stimulants + Vitamin C or Citrus within 90-120 minutes
+  if (hasStimulant) {
     const isVitC =
       normName.includes('vitamin c') ||
       normName.includes('ascorb') ||
@@ -178,10 +181,12 @@ export function evaluateDailyInteractions(
   entries: LogEntry[]
 ): InteractionAlert[] {
   const alerts: InteractionAlert[] = [];
-  const med = profile.medication;
+  const meds = profile.medications || (profile.medication && profile.medication !== 'NONE' ? [profile.medication] : []);
+  const hasMph = meds.includes('METHYLPHENIDATE');
+  const hasSsriOrSnri = meds.includes('SSRI') || meds.includes('SNRI');
 
   // 1. Check if Methylphenidate was taken with adequate breakfast
-  if (med === 'METHYLPHENIDATE') {
+  if (hasMph) {
     const medEntries = entries.filter(
       (e) => e.mealType === 'medication' || (e.medicationName && e.medicationName.length > 0)
     );
@@ -218,8 +223,8 @@ export function evaluateDailyInteractions(
     }
   }
 
-  // 2. High-Dose Omega-3 + SSRI check
-  if (med === 'SSRI') {
+  // 2. High-Dose Omega-3 + SSRI/SNRI check
+  if (hasSsriOrSnri) {
     const totalOmega3 = entries.reduce(
       (acc, curr) => acc + (curr.omega3EpaMg || 0) + (curr.omega3DhaMg || 0) + (curr.omega3Mg || 0),
       0

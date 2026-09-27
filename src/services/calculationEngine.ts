@@ -126,12 +126,25 @@ export function calculateNutrientPlan(profile: UserProfile): NutrientPlan {
   const cholineMg = isAdhd ? 600 : 500;
   const seleniumUg = 70;
 
-  // Special Clinical Reminders & Guidelines
+  // Special Clinical Reminders & Guidelines based on all active medications
   const specialGuidelines: string[] = [];
 
-  if (medication === 'METHYLPHENIDATE') {
+  const meds = profile.medications || (medication && medication !== 'NONE' ? [medication] : []);
+  const hasMph = meds.includes('METHYLPHENIDATE');
+  const hasLdx = meds.includes('LISDEXAMFETAMINE');
+  const hasSsri = meds.includes('SSRI');
+  const hasSnri = meds.includes('SNRI');
+  const hasBupropion = meds.includes('BUPROPION');
+  const hasAtomoxetine = meds.includes('ATOMOXETINE');
+  const hasGuanfacine = meds.includes('GUANFACINE');
+  const hasLamotrigine = meds.includes('LAMOTRIGINE');
+  const hasMelatonin = meds.includes('MELATONIN');
+  const hasIron = meds.includes('IRON_SUPPLEMENT');
+  const hasThyroid = meds.includes('THYROID_HORMONE');
+
+  if (hasMph) {
     specialGuidelines.push(
-      'Frühstücks-Check: Vor oder mit der Einnahme von Methylphenidat mindestens 15g Protein und 8g Fett zuführen, um Dose Dumping und Rebound-Crashes zu dämpfen.'
+      'Frühstücks-Check (Medikinet): Vor oder mit der Einnahme mindestens 15g Protein und 8g Fett zuführen, um Dose Dumping und Rebound-Crashes zu dämpfen.'
     );
     specialGuidelines.push(
       'Vitamin C Spacing: Säurehaltige Säfte und Vitamin-C-Supplements mindestens 90–120 Minuten zeitlich versetzt zu Stimulanzien einnehmen (renale Clearance!).'
@@ -141,12 +154,54 @@ export function calculateNutrientPlan(profile: UserProfile): NutrientPlan {
     );
   }
 
-  if (medication === 'SSRI') {
+  if (hasLdx) {
+    specialGuidelines.push(
+      'Lisdexamfetamin (Elvanse): Auf kontinuierliche Flüssigkeitszufuhr achten. Vitamin C / säurehaltige Getränke meiden, um die renale Ausscheidung nicht zu beschleunigen.'
+    );
+  }
+
+  if (hasAtomoxetine) {
+    specialGuidelines.push(
+      'Atomoxetin: Zur Vermeidung gastrointestinaler Nebenwirkungen (Übelkeit) immer mit einer vollwertigen Mahlzeit einnehmen.'
+    );
+  }
+
+  if (hasBupropion) {
+    specialGuidelines.push(
+      'Bupropion (Wellbutrin): Morgens einnehmen. Koffeinkonsum moderieren, um vegetative Unruhe und Krampfschwellen-Absenkung zu vermeiden.'
+    );
+  }
+
+  if (hasGuanfacine) {
+    specialGuidelines.push(
+      'Guanfacin: Wegen Sedierung bevorzugt abends einnehmen. Nicht mit extrem fettreichen Mahlzeiten kombinieren (Cmax-Peak).'
+    );
+  }
+
+  if (hasSsri || hasSnri) {
     specialGuidelines.push(
       'STRIKTE SICHERHEITSSPERRE: Keine gleichzeitige Gabe von 5-HTP, L-Tryptophan, Johanniskraut oder SAMe (Lebensgefahr durch Serotonin-Syndrom!).'
     );
     specialGuidelines.push(
       'Omega-3 Monitoring: Dosierungen über 2.000 mg EPA/DHA wegen additiver Thrombozytenaggregationshemmung mit dem Arzt abstimmen.'
+    );
+  }
+
+  if (hasMelatonin) {
+    specialGuidelines.push(
+      'Melatonin Chronobiologie: 30–60 Minuten vor der Ziel-Schlafzeit bei gedimmtem Licht einnehmen. Synergie mit Magnesium-Bisglycinat.'
+    );
+  }
+
+  if (hasIron) {
+    specialGuidelines.push(
+      'Eisen-Resorption: Mindestens 2 Stunden Abstand zu Kaffee, Tee (Tannine) und Milch (Calcium) einhalten. Synergie mit Vitamin C nutzen.'
+    );
+  }
+
+  if (hasThyroid) {
+    specialGuidelines.push(
+      'L-Thyroxin: Strikte Nüchterneinnahme 30–60 Min. vor dem Frühstück mit Wasser. Mindestens 4 Std. Abstand zu Calcium- und Eisen-Präparaten.'
     );
   }
 

@@ -14,6 +14,7 @@ export const DEMO_PROFILE: UserProfile = {
   goal: 'MAINTENANCE',
   neuroModifier: 'ADHD',
   medication: 'METHYLPHENIDATE',
+  medications: ['METHYLPHENIDATE'],
   trackGlutenCasein: true,
   notes: 'Medikinet adult 20mg morgens. Fokus auf Dopamin-Synthese, Kinetik-Glättung und Vermeidung von Rebound-Crashes.',
   createdAt: '2026-08-28T07:30:00.000Z',

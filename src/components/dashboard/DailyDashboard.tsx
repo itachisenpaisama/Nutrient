@@ -129,7 +129,11 @@ export const DailyDashboard: React.FC<DailyDashboardProps> = ({
           <span className="text-slate-400">Aktives Profil:</span>
           <span className="px-2.5 py-1 rounded-lg font-bold bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">
             {profile.neuroModifier !== 'NONE' ? profile.neuroModifier : 'Standard'}
-            {profile.medication !== 'NONE' && ` + ${profile.medication}`}
+            {profile.medications && profile.medications.length > 0
+              ? ` + ${profile.medications.join(', ')}`
+              : profile.medication !== 'NONE'
+              ? ` + ${profile.medication}`
+              : ''}
           </span>
         </div>
       </div>

@@ -9,10 +9,19 @@ export type PhysicalGoal = 'FAT_LOSS' | 'MAINTENANCE' | 'HYPERTROPHY';
 export type NeuroModifier = 'NONE' | 'ADHD' | 'ASD' | 'AUDHD';
 
 export type MedicationType =
-  | 'METHYLPHENIDATE' // Medikinet adult, Ritalin, Concerta
-  | 'LISDEXAMFETAMINE' // Elvanse, Vyvanse
-  | 'SSRI' // Sertralin, Citalopram, Escitalopram
+  | 'METHYLPHENIDATE' // Medikinet adult, Ritalin, Concerta, Equasym
+  | 'LISDEXAMFETAMINE' // Elvanse, Vyvanse, Attentin
+  | 'ATOMOXETINE' // Strattera
+  | 'GUANFACINE' // Intuniv
+  | 'BUPROPION' // Wellbutrin, Elontril (NDRI)
+  | 'SSRI' // Sertralin, Escitalopram, Citalopram, Fluoxetin, Paroxetin
+  | 'SNRI' // Venlafaxin, Duloxetin
+  | 'LAMOTRIGINE' // Lamictal
+  | 'MELATONIN' // Circadin, Melatonin
   | 'IRON_SUPPLEMENT' // Ferro Sanol etc.
+  | 'MAGNESIUM_SUPPLEMENT' // Magnesium Glycinat, Malat
+  | 'THYROID_HORMONE' // L-Thyroxin
+  | 'OTHER'
   | 'NONE';
 
 export interface UserProfile {
@@ -27,7 +36,9 @@ export interface UserProfile {
   activityLevel: ActivityLevel;
   goal: PhysicalGoal;
   neuroModifier: NeuroModifier;
-  medication: MedicationType;
+  medication: MedicationType; // Primary or legacy single medication
+  medications: MedicationType[]; // Multiple medications support
+  customMedications?: string[]; // Optional user-defined medication names
   trackGlutenCasein: boolean;
   notes?: string;
   createdAt: string;
@@ -143,6 +154,7 @@ export interface FoodItem {
   seleniumUg?: number;
   isGlutenFree?: boolean;
   isCaseinFree?: boolean;
+  isCustom?: boolean;
 }
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'supplement' | 'medication';
