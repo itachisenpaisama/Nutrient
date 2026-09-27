@@ -61,6 +61,29 @@ if (fs.existsSync(distDir)) {
   fs.writeFileSync(path.join(repoDocsDocsDir, '.nojekyll'), '');
   stripRedirectFromDocsIndex(path.join(repoDocsDocsDir, 'index.html'));
 
+  // 5. Ensure root directory has icons, manifest, and assets so branch root deployment works directly
+  console.log('Synchronizing static assets and icons to project root...');
+  const staticRootFiles = [
+    'apple-touch-icon.png',
+    'favicon-16x16.png',
+    'favicon-32x32.png',
+    'favicon.svg',
+    'icons.svg',
+    'pwa-192x192.png',
+    'pwa-512x512.png',
+    'site.webmanifest',
+    '.nojekyll',
+  ];
+  for (const file of staticRootFiles) {
+    const srcFile = path.join(distDir, file);
+    if (fs.existsSync(srcFile)) {
+      fs.copyFileSync(srcFile, path.join(rootDir, file));
+    }
+  }
+  if (fs.existsSync(path.join(distDir, 'assets'))) {
+    copyFolderSync(path.join(distDir, 'assets'), path.join(rootDir, 'assets'));
+  }
+
   console.log('--- Post-build: Completed successfully ---');
 } else {
   console.error('dist directory does not exist!');
