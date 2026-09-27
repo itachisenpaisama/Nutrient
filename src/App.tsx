@@ -16,6 +16,7 @@ import { MealLoggerModal } from './components/tracker/MealLoggerModal';
 import { MedicationLoggerModal } from './components/tracker/MedicationLoggerModal';
 import { SupplementLoggerModal } from './components/tracker/SupplementLoggerModal';
 import { SymptomLoggerModal } from './components/tracker/SymptomLoggerModal';
+import { InstallPromptModal } from './components/InstallPromptModal';
 
 export const App: React.FC = () => {
   // Localization & Theme
@@ -45,6 +46,7 @@ export const App: React.FC = () => {
   const [isMedicationModalOpen, setIsMedicationModalOpen] = useState<boolean>(false);
   const [isSupplementModalOpen, setIsSupplementModalOpen] = useState<boolean>(false);
   const [isSymptomModalOpen, setIsSymptomModalOpen] = useState<boolean>(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
 
   // Sync theme to root html element
   useEffect(() => {
@@ -294,6 +296,7 @@ export const App: React.FC = () => {
         onThemeToggle={handleThemeToggle}
         activeAlerts={currentAlerts}
         onOpenProfile={() => setActiveTab('profile')}
+        onOpenInstallPrompt={() => setIsInstallModalOpen(true)}
       />
 
       {/* Navigation Bar */}
@@ -387,6 +390,12 @@ export const App: React.FC = () => {
         onSave={handleSaveSymptoms}
         profile={profile}
         initialLog={activeDaySymptoms}
+      />
+
+      <InstallPromptModal
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+        lang={lang}
       />
     </div>
   );

@@ -8,7 +8,8 @@ import {
   Globe,
   ShieldAlert,
   Activity,
-  UserCheck
+  UserCheck,
+  Smartphone
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -19,6 +20,7 @@ interface HeaderProps {
   onThemeToggle: () => void;
   activeAlerts: InteractionAlert[];
   onOpenProfile: () => void;
+  onOpenInstallPrompt: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -28,7 +30,8 @@ export const Header: React.FC<HeaderProps> = ({
   isDark,
   onThemeToggle,
   activeAlerts,
-  onOpenProfile
+  onOpenProfile,
+  onOpenInstallPrompt
 }) => {
   const t = TRANSLATIONS[lang];
   const criticalCount = activeAlerts.filter((a) => a.severity === 'CRITICAL_LOCK').length;
@@ -70,6 +73,16 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="px-1.5 py-0.5 text-[10px] rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-mono">
               {profile.neuroModifier}
             </span>
+          </button>
+
+          {/* Install on Phone / iPhone Button */}
+          <button
+            onClick={onOpenInstallPrompt}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/70 border-cyan-200 dark:border-cyan-800/80 hover:bg-cyan-100 dark:hover:bg-cyan-900/60 transition cursor-pointer shadow-sm shadow-cyan-500/10"
+            title="App auf iPhone / Handy installieren"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+            <span className="hidden sm:inline">App installieren</span>
           </button>
 
           {/* Safety Alerts Indicator */}
