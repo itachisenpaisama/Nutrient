@@ -19,7 +19,7 @@ import { TrackerView } from './components/tracker/TrackerView';
 import { LexiconView } from './components/lexicon/LexiconView';
 import { ProfileWizard } from './components/profile/ProfileWizard';
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard';
-import { FolderStructureView } from './components/vault/FolderStructureView';
+import { DailyJournalView } from './components/journal/DailyJournalView';
 import { MealLoggerModal } from './components/tracker/MealLoggerModal';
 import { MedicationLoggerModal } from './components/tracker/MedicationLoggerModal';
 import { SupplementLoggerModal } from './components/tracker/SupplementLoggerModal';
@@ -466,7 +466,18 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'vault' && (
-          <FolderStructureView lang={lang} onRefreshData={handleRefreshData} />
+          <DailyJournalView
+            logs={logs}
+            profile={profile}
+            plan={plan}
+            lang={lang}
+            onRefreshData={handleRefreshData}
+            onNavigateToDate={(date) => {
+              setSelectedDate(date);
+              setActiveTab('tracker');
+            }}
+            onUpdateLogs={setLogs}
+          />
         )}
       </main>
 

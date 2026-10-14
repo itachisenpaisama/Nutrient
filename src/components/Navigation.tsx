@@ -6,7 +6,7 @@ import {
   BookOpen,
   UserCog,
   LineChart,
-  FolderTree
+  BookMarked
 } from 'lucide-react';
 
 export type ActiveTab = 'dashboard' | 'tracker' | 'lexicon' | 'profile' | 'analytics' | 'vault';
@@ -32,7 +32,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     { id: 'lexicon', label: t.navLexicon, icon: BookOpen },
     { id: 'profile', label: t.navProfile, icon: UserCog },
     { id: 'analytics', label: t.navAnalytics, icon: LineChart },
-    { id: 'vault', label: t.navVault, icon: FolderTree }
+    { id: 'vault', label: t.navVault, icon: BookMarked }
   ];
 
   return (

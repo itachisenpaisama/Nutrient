@@ -751,4 +751,129 @@ export class StorageService {
       return false;
     }
   }
+
+  static downloadFile(fileName: string, content: string, mimeType: string = 'text/plain'): void {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  static generateDayMarkdown(log: DailyLogSummary, profile: UserProfile, plan?: NutrientPlan): string {
+    const dateFormatted = new Date(log.date + 'T00:00:00').toLocaleDateString('de-DE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const s = log.symptomLog;
+    const lines: string[] = [
+      `# 📖 TAGEBUCH-EINTRAG: ${dateFormatted}`,
+      `**Datum:** ${log.date} | **Profil:** ${profile.name} (${profile.neuroModifier})`,
+      `**Neuro-Adhärenz Score:** ${log.scorePct}%`,
+      `**Wasseraufnahme:** ${log.waterMl || 0} ml / ${log.waterGoalMl || profile.waterGoalMl || 3000} ml`,
+      `**Kalorien:** ${Math.round(log.totals.calories)} kcal${plan ? ` / ${plan.targetCalories} kcal` : ''}`,
+      `**Protein:** ${Math.round(log.totals.proteinG)} g${plan ? ` / ${plan.proteinGrams} g` : ''}`,
+      '',
+      '---',
+      '',
+      '## 🧠 TAGESREFLEXION & BEFINDLICHKEIT'
+    ];
+
+    if (s) {
+      lines.push(
+        `- **Fokus & Konzentration:** ${s.focusScore} / 10`,
+        `- **Energie & Antrieb:** ${s.energyScore} / 10`,
+        `- **Schlafqualität:** ${s.sleepQualityScore} / 10`,
+        `- **Magen-Darm-Komfort:** ${s.gutComfortScore} / 10`
+      );
+      if (typeof s.reboundSeverityScore === 'number') {
+        lines.push(`- **Rebound-Crash:** ${s.reboundSeverityScore} / 10`);
+      }
+      if (s.notes) {
+        lines.push('', `> **Notiz des Tages:**`, `> ${s.notes.replace(/\n/g, '\n> ')}`);
+      }
+    } else {
+      lines.push('*Keine Befindlichkeits-Bewertung für diesen Tag erfasst.*');
+    }
+
+    lines.push('', '---', '', '## ⏱️ TAGES-TIMELINE & MAHLZEITEN');
+    if (log.entries.length === 0) {
+      lines.push('*Keine Mahlzeiten oder Medikamente protokolliert.*');
+    } else {
+      const sorted = [...log.entries].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+      for (const e of sorted) {
+        const time = e.timestamp.slice(11, 16);
+        if (e.mealType === 'medication') {
+          lines.push(`- **[${time}] 💊 Medikation:** ${e.title} (Dosis: ${e.dosage || 'Standard'})${e.timingVerified ? ' ✓ Verifiziert' : ''}`);
+        } else if (e.mealType === 'supplement') {
+          lines.push(`- **[${time}] ✨ Supplement:** ${e.title}`);
+        } else {
+          lines.push(`- **[${time}] 🍽️ ${e.title}:** ${Math.round(e.calories)} kcal · ${Math.round(e.proteinG)}g P · ${Math.round(e.carbsG)}g KH · ${Math.round(e.fatG)}g F`);
+        }
+      }
+    }
+
+    lines.push('', '---', '', '## 📊 NÄHRSTOFF- & KOFAKTOREN-BILANZ');
+    lines.push(
+      `- **Kalorien:** ${Math.round(log.totals.calories)} kcal`,
+      `- **Protein:** ${Math.round(log.totals.proteinG)} g`,
+      `- **Kohlenhydrate:** ${Math.round(log.totals.carbsG)} g`,
+      `- **Fette:** ${Math.round(log.totals.fatG)} g`,
+      `- **Ballaststoffe:** ${Math.round(log.totals.fiberG)} g`,
+      `- **Omega-3 EPA:** ${Math.round(log.totals.omega3EpaMg)} mg`,
+      `- **P5P (Vitamin B6):** ${log.totals.vitaminB6Mg.toFixed(1)} mg`,
+      `- **Magnesium:** ${Math.round(log.totals.magnesiumMg)} mg`,
+      `- **Eisen:** ${log.totals.ironMg.toFixed(1)} mg`,
+      `- **Zink:** ${log.totals.zincMg.toFixed(1)} mg`
+    );
+
+    lines.push('', `*Erstellt mit NutriNeuro am ${new Date().toLocaleDateString('de-DE')}*`);
+    return lines.join('\n');
+  }
+
+  static generateFullJournalMarkdown(logs: DailyLogSummary[], profile: UserProfile, plan?: NutrientPlan): string {
+    const sorted = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+    const header = [
+      `# 📚 VOLLSTÄNDIGES TAGEBUCH & NÄHRSTOFF-ARCHIV`,
+      `**Patient / Profil:** ${profile.name} (${profile.neuroModifier})`,
+      `**Umfang:** ${logs.length} protokollierte Tage`,
+      `**Exportiert am:** ${new Date().toLocaleDateString('de-DE')}`,
+      '',
+      '==================================================',
+      ''
+    ].join('\n');
+
+    const daySections = sorted.map((log) => this.generateDayMarkdown(log, profile, plan));
+    return header + '\n\n' + daySections.join('\n\n==================================================\n\n');
+  }
+
+  static saveDayNote(date: string, note: string, profileId?: string): DailyLogSummary[] {
+    const targetId = profileId || this.getActiveProfileId();
+    const logs = this.getLogs(targetId);
+    const existing = logs.find((l) => l.date === date);
+    if (existing) {
+      if (existing.symptomLog) {
+        existing.symptomLog.notes = note;
+      } else {
+        existing.symptomLog = {
+          date,
+          focusScore: 7,
+          energyScore: 7,
+          fatigueScore: 4,
+          gutComfortScore: 8,
+          sleepQualityScore: 7,
+          notes: note
+        };
+      }
+      this.saveLogs(logs, targetId);
+    }
+    return logs;
+  }
 }

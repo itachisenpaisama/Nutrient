@@ -9,7 +9,7 @@ export const TRANSLATIONS = {
     navLexicon: 'Wissensdatenbank',
     navProfile: 'Profil & Nährstoffplan',
     navAnalytics: 'Analytics & Korrelationen',
-    navVault: 'Ordner-Dateisystem',
+    navVault: 'Tagebuch & Archiv',
     
     // Theme & Lang
     darkMode: 'Dark Mode',
@@ -117,7 +117,7 @@ export const TRANSLATIONS = {
     navLexicon: 'Knowledge Base',
     navProfile: 'Profile & Targets',
     navAnalytics: 'Analytics & Trends',
-    navVault: 'Data File Vault',
+    navVault: 'Journal & Daily Archive',
     
     // Theme & Lang
     darkMode: 'Dark Mode',
