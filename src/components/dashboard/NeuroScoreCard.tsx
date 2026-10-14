@@ -84,22 +84,22 @@ export const NeuroScoreCard: React.FC<NeuroScoreCardProps> = ({ log, plan }) => 
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center space-x-2">
-          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 gap-3">
+        <div className="flex items-center space-x-2 min-w-0">
+          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+          <div className="min-w-0">
+            <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider truncate">
               Neuro-Mikronährstoff-Score
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
               Kofaktoren-Adhärenz für Neurotransmitter-Synthesewege
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 shrink-0">
           <span className="text-xl font-extrabold text-slate-900 dark:text-white">
             {scorePct}%
           </span>

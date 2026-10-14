@@ -14,8 +14,6 @@ export const CustomFoodModal: React.FC<CustomFoodModalProps> = ({
   onClose,
   onFoodSaved
 }) => {
-  if (!isOpen) return null;
-
   const [name, setName] = useState('');
   const [servingSizeGrams, setServingSizeGrams] = useState(250);
   const [calories, setCalories] = useState(350);
@@ -77,6 +75,8 @@ export const CustomFoodModal: React.FC<CustomFoodModalProps> = ({
     onFoodSaved(newFood);
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">

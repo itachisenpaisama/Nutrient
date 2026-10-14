@@ -19,8 +19,6 @@ export const SupplementLoggerModal: React.FC<SupplementLoggerModalProps> = ({
   profile,
   existingEntries
 }) => {
-  if (!isOpen) return null;
-
   const [supplementType, setSupplementType] = useState<string>('supp-omega3-algae');
   const [customName, setCustomName] = useState<string>('');
   const [time, setTime] = useState<string>('13:30');
@@ -97,6 +95,8 @@ export const SupplementLoggerModal: React.FC<SupplementLoggerModalProps> = ({
     onSave(newEntry, validationAlert || undefined);
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

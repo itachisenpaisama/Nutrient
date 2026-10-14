@@ -41,8 +41,23 @@ export interface UserProfile {
   customMedications?: string[]; // Optional user-defined medication names
   trackGlutenCasein: boolean;
   notes?: string;
+  avatarColor?: string; // Hex or theme color for avatar identifier
+  waterGoalMl?: number; // Daily hydration target in ml (e.g. 2500 - 3500)
+  isPreset?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface MealPreset {
+  id: string;
+  title: string;
+  category: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'supplement';
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG: number;
+  description?: string;
 }
 
 export interface NutrientPlan {
@@ -211,6 +226,8 @@ export interface DailyLogSummary {
   date: string; // YYYY-MM-DD
   entries: LogEntry[];
   symptomLog?: DailySymptomLog;
+  waterMl?: number; // Hydration logged in ml
+  waterGoalMl?: number; // Target for this day in ml
   totals: {
     calories: number;
     proteinG: number;

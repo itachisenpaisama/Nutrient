@@ -21,22 +21,22 @@ export const MacroOverview: React.FC<MacroOverviewProps> = ({ plan, log, lang })
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center space-x-2">
-          <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 gap-3">
+        <div className="flex items-center space-x-2 min-w-0">
+          <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 shrink-0">
             <Flame className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs">
-              Kalorien- & Makro-Overview
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider text-xs truncate">
+              Kalorien- &amp; Makro-Overview
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
               Zielwerte aus Kaskaden-Berechnung
             </p>
           </div>
         </div>
 
-        <div className="text-right">
+        <div className="text-left sm:text-right shrink-0">
           <div className="text-lg font-extrabold text-slate-900 dark:text-white">
             {totals.calories.toLocaleString()} / {plan.targetCalories.toLocaleString()} <span className="text-xs font-normal text-slate-500">kcal</span>
           </div>

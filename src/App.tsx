@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, DailyLogSummary, NutrientPlan, LogEntry, InteractionAlert, DailySymptomLog, PlanRecommendation } from './types';
+import {
+  UserProfile,
+  DailyLogSummary,
+  NutrientPlan,
+  LogEntry,
+  InteractionAlert,
+  DailySymptomLog,
+  PlanRecommendation
+} from './types';
 import { StorageService } from './services/storageService';
 import { calculateNutrientPlan } from './services/calculationEngine';
 import { evaluateDailyInteractions } from './services/interactionEngine';
-import { Language, TRANSLATIONS } from './i18n/translations';
+import { Language } from './i18n/translations';
 import { Header } from './components/Header';
 import { Navigation, ActiveTab } from './components/Navigation';
 import { DailyDashboard } from './components/dashboard/DailyDashboard';
@@ -17,6 +25,8 @@ import { MedicationLoggerModal } from './components/tracker/MedicationLoggerModa
 import { SupplementLoggerModal } from './components/tracker/SupplementLoggerModal';
 import { SymptomLoggerModal } from './components/tracker/SymptomLoggerModal';
 import { InstallPromptModal } from './components/InstallPromptModal';
+import { CreateProfileModal } from './components/profile/CreateProfileModal';
+import { DoctorReportModal } from './components/report/DoctorReportModal';
 
 export const App: React.FC = () => {
   // Localization & Theme
@@ -33,10 +43,19 @@ export const App: React.FC = () => {
   // Active Navigation Tab
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
-  // Core Data States
-  const [profile, setProfile] = useState<UserProfile>(() => StorageService.getProfile());
-  const [plan, setPlan] = useState<NutrientPlan>(() => StorageService.getPlan(profile));
-  const [logs, setLogs] = useState<DailyLogSummary[]>(() => StorageService.getLogs());
+  // Core Multi-Profile Data States
+  const [allProfiles, setAllProfiles] = useState<UserProfile[]>(() =>
+    StorageService.getProfiles()
+  );
+  const [profile, setProfile] = useState<UserProfile>(() =>
+    StorageService.getProfile()
+  );
+  const [plan, setPlan] = useState<NutrientPlan>(() =>
+    StorageService.getPlan(profile)
+  );
+  const [logs, setLogs] = useState<DailyLogSummary[]>(() =>
+    StorageService.getLogs(profile.id)
+  );
 
   // Default selected date: 2026-09-27
   const [selectedDate, setSelectedDate] = useState<string>('2026-09-27');
@@ -47,6 +66,8 @@ export const App: React.FC = () => {
   const [isSupplementModalOpen, setIsSupplementModalOpen] = useState<boolean>(false);
   const [isSymptomModalOpen, setIsSymptomModalOpen] = useState<boolean>(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
+  const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState<boolean>(false);
+  const [isDoctorReportModalOpen, setIsDoctorReportModalOpen] = useState<boolean>(false);
 
   // Sync theme to root html element
   useEffect(() => {
@@ -68,7 +89,52 @@ export const App: React.FC = () => {
     setIsDark((prev) => !prev);
   };
 
-  // Helper to update a day's log entries & totals
+  // Profile Switching & Management
+  const handleSelectProfile = (profileId: string) => {
+    StorageService.setActiveProfileId(profileId);
+    const newProf = StorageService.getProfile(profileId);
+    setProfile(newProf);
+    const newPlan = StorageService.getPlan(newProf);
+    setPlan(newPlan);
+    const newLogs = StorageService.getLogs(profileId);
+    setLogs(newLogs);
+  };
+
+  const handleCreateProfile = (
+    newProfData: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>,
+    withDemoLogs: boolean
+  ) => {
+    const created = StorageService.createProfile(newProfData, withDemoLogs);
+    const updatedList = StorageService.getProfiles();
+    setAllProfiles(updatedList);
+    setProfile(created);
+    const newPlan = StorageService.getPlan(created);
+    setPlan(newPlan);
+    const newLogs = StorageService.getLogs(created.id);
+    setLogs(newLogs);
+  };
+
+  const handleDuplicateProfile = (profileId: string) => {
+    const copy = StorageService.duplicateProfile(profileId);
+    if (copy) {
+      const updatedList = StorageService.getProfiles();
+      setAllProfiles(updatedList);
+    }
+  };
+
+  const handleDeleteProfile = (profileId: string) => {
+    const success = StorageService.deleteProfile(profileId);
+    if (success) {
+      const updatedList = StorageService.getProfiles();
+      setAllProfiles(updatedList);
+      const active = StorageService.getProfile();
+      setProfile(active);
+      setPlan(StorageService.getPlan(active));
+      setLogs(StorageService.getLogs(active.id));
+    }
+  };
+
+  // Helper to update a day's log entries & totals for active profile
   const updateDayEntries = (date: string, newEntries: LogEntry[], extraAlert?: InteractionAlert) => {
     const existingIndex = logs.findIndex((l) => l.date === date);
 
@@ -149,6 +215,8 @@ export const App: React.FC = () => {
       const newDay: DailyLogSummary = {
         date,
         entries: newEntries,
+        waterMl: 0,
+        waterGoalMl: profile.waterGoalMl || 3000,
         totals,
         cofactorsMet,
         scorePct,
@@ -158,11 +226,18 @@ export const App: React.FC = () => {
     }
 
     setLogs(updatedLogs);
-    StorageService.saveLogs(updatedLogs);
+    StorageService.saveLogs(updatedLogs, profile.id);
   };
 
   // Add Meal
   const handleSaveMeal = (entry: LogEntry) => {
+    const currentDay = logs.find((l) => l.date === selectedDate);
+    const entries = currentDay ? [...currentDay.entries, entry] : [entry];
+    updateDayEntries(selectedDate, entries);
+  };
+
+  // Direct Entry from Presets
+  const handleAddEntryDirect = (entry: LogEntry) => {
     const currentDay = logs.find((l) => l.date === selectedDate);
     const entries = currentDay ? [...currentDay.entries, entry] : [entry];
     updateDayEntries(selectedDate, entries);
@@ -192,12 +267,14 @@ export const App: React.FC = () => {
         symptomLog
       };
       setLogs(updated);
-      StorageService.saveLogs(updated);
+      StorageService.saveLogs(updated, profile.id);
     } else {
       const newDay: DailyLogSummary = {
         date: selectedDate,
         entries: [],
         symptomLog,
+        waterMl: 0,
+        waterGoalMl: profile.waterGoalMl || 3000,
         totals: {
           calories: 0,
           proteinG: 0,
@@ -231,8 +308,14 @@ export const App: React.FC = () => {
       };
       const updated = [...logs, newDay];
       setLogs(updated);
-      StorageService.saveLogs(updated);
+      StorageService.saveLogs(updated, profile.id);
     }
+  };
+
+  // Hydration delta
+  const handleAddWater = (deltaMl: number) => {
+    StorageService.addWaterIntake(selectedDate, deltaMl, profile.id);
+    setLogs(StorageService.getLogs(profile.id));
   };
 
   // Delete Log Entry
@@ -247,9 +330,10 @@ export const App: React.FC = () => {
   const handleSaveProfile = (updatedProfile: UserProfile) => {
     setProfile(updatedProfile);
     StorageService.saveProfile(updatedProfile);
+    setAllProfiles(StorageService.getProfiles());
     const newPlan = calculateNutrientPlan(updatedProfile);
     setPlan(newPlan);
-    StorageService.savePlan(newPlan);
+    StorageService.savePlan(newPlan, updatedProfile.id);
   };
 
   // 1-Click Plan Adaptation Confirmation
@@ -270,14 +354,17 @@ export const App: React.FC = () => {
       }
     }
     setPlan(updatedPlan);
-    StorageService.savePlan(updatedPlan);
+    StorageService.savePlan(updatedPlan, profile.id);
   };
 
   // Refresh data from storage
   const handleRefreshData = () => {
-    setProfile(StorageService.getProfile());
-    setPlan(StorageService.getPlan());
-    setLogs(StorageService.getLogs());
+    const profs = StorageService.getProfiles();
+    setAllProfiles(profs);
+    const active = StorageService.getProfile();
+    setProfile(active);
+    setPlan(StorageService.getPlan(active));
+    setLogs(StorageService.getLogs(active.id));
   };
 
   // Active day entries for modals
@@ -290,6 +377,9 @@ export const App: React.FC = () => {
       {/* Top Application Header */}
       <Header
         profile={profile}
+        allProfiles={allProfiles}
+        onSelectProfile={handleSelectProfile}
+        onOpenCreateProfile={() => setIsCreateProfileModalOpen(true)}
         lang={lang}
         onLanguageChange={handleLanguageChange}
         isDark={isDark}
@@ -297,10 +387,16 @@ export const App: React.FC = () => {
         activeAlerts={currentAlerts}
         onOpenProfile={() => setActiveTab('profile')}
         onOpenInstallPrompt={() => setIsInstallModalOpen(true)}
+        onOpenDoctorReport={() => setIsDoctorReportModalOpen(true)}
       />
 
       {/* Navigation Bar */}
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} lang={lang} />
+      <Navigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        lang={lang}
+        profileCount={allProfiles.length}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -308,6 +404,9 @@ export const App: React.FC = () => {
           <DailyDashboard
             logs={logs}
             profile={profile}
+            allProfiles={allProfiles}
+            onSelectProfile={handleSelectProfile}
+            onOpenCreateProfile={() => setIsCreateProfileModalOpen(true)}
             plan={plan}
             lang={lang}
             selectedDate={selectedDate}
@@ -316,6 +415,7 @@ export const App: React.FC = () => {
             onAddMedication={() => setIsMedicationModalOpen(true)}
             onAddSupplement={() => setIsSupplementModalOpen(true)}
             onLogSymptoms={() => setIsSymptomModalOpen(true)}
+            onAddWater={handleAddWater}
           />
         )}
 
@@ -323,6 +423,9 @@ export const App: React.FC = () => {
           <TrackerView
             logs={logs}
             profile={profile}
+            allProfiles={allProfiles}
+            onSelectProfile={handleSelectProfile}
+            onOpenCreateProfile={() => setIsCreateProfileModalOpen(true)}
             plan={plan}
             lang={lang}
             selectedDate={selectedDate}
@@ -332,6 +435,7 @@ export const App: React.FC = () => {
             onAddSupplement={() => setIsSupplementModalOpen(true)}
             onLogSymptoms={() => setIsSymptomModalOpen(true)}
             onDeleteEntry={handleDeleteEntry}
+            onAddEntryDirect={handleAddEntryDirect}
           />
         )}
 
@@ -339,8 +443,14 @@ export const App: React.FC = () => {
 
         {activeTab === 'profile' && (
           <ProfileWizard
+            key={profile.id}
             initialProfile={profile}
+            allProfiles={allProfiles}
             onSaveProfile={handleSaveProfile}
+            onSelectProfile={handleSelectProfile}
+            onCreateProfileClick={() => setIsCreateProfileModalOpen(true)}
+            onDuplicateProfile={handleDuplicateProfile}
+            onDeleteProfile={handleDeleteProfile}
             lang={lang}
           />
         )}
@@ -396,6 +506,20 @@ export const App: React.FC = () => {
         isOpen={isInstallModalOpen}
         onClose={() => setIsInstallModalOpen(false)}
         lang={lang}
+      />
+
+      <CreateProfileModal
+        isOpen={isCreateProfileModalOpen}
+        onClose={() => setIsCreateProfileModalOpen(false)}
+        onCreateProfile={handleCreateProfile}
+      />
+
+      <DoctorReportModal
+        isOpen={isDoctorReportModalOpen}
+        onClose={() => setIsDoctorReportModalOpen(false)}
+        profile={profile}
+        plan={plan}
+        logs={logs}
       />
     </div>
   );

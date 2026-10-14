@@ -18,8 +18,6 @@ export const MedicationLoggerModal: React.FC<MedicationLoggerModalProps> = ({
   profile,
   existingEntries
 }) => {
-  if (!isOpen) return null;
-
   // Active user medications from profile
   const userMeds =
     profile.medications && profile.medications.length > 0
@@ -128,6 +126,8 @@ export const MedicationLoggerModal: React.FC<MedicationLoggerModalProps> = ({
     onSave(newEntry);
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">

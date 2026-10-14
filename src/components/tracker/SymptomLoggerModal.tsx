@@ -17,8 +17,6 @@ export const SymptomLoggerModal: React.FC<SymptomLoggerModalProps> = ({
   profile,
   initialLog
 }) => {
-  if (!isOpen) return null;
-
   const [focusScore, setFocusScore] = useState<number>(initialLog?.focusScore ?? 7);
   const [energyScore, setEnergyScore] = useState<number>(initialLog?.energyScore ?? 7);
   const [reboundScore, setReboundScore] = useState<number>(initialLog?.reboundSeverityScore ?? 3);
@@ -46,6 +44,8 @@ export const SymptomLoggerModal: React.FC<SymptomLoggerModalProps> = ({
     onSave(log);
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

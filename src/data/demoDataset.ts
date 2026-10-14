@@ -1,4 +1,4 @@
-import { UserProfile, DailyLogSummary, LogEntry, DailySymptomLog } from '../types';
+import { UserProfile, DailyLogSummary, LogEntry, DailySymptomLog, MealPreset } from '../types';
 import { calculateNutrientPlan } from '../services/calculationEngine';
 
 export const DEMO_PROFILE: UserProfile = {
@@ -16,10 +16,94 @@ export const DEMO_PROFILE: UserProfile = {
   medication: 'METHYLPHENIDATE',
   medications: ['METHYLPHENIDATE'],
   trackGlutenCasein: true,
+  avatarColor: '#06b6d4',
+  waterGoalMl: 3000,
   notes: 'Medikinet adult 20mg morgens. Fokus auf Dopamin-Synthese, Kinetik-Glättung und Vermeidung von Rebound-Crashes.',
   createdAt: '2026-08-28T07:30:00.000Z',
   updatedAt: '2026-09-27T08:00:00.000Z'
 };
+
+export const PRESET_SARAH: UserProfile = {
+  id: 'profile-sarah-02',
+  name: 'Sarah Keller',
+  age: 26,
+  gender: 'female',
+  heightCm: 168,
+  weightKg: 62,
+  bodyFatPct: 22,
+  leanBodyMassKg: 48.4,
+  activityLevel: 1.375,
+  goal: 'FAT_LOSS',
+  neuroModifier: 'AUDHD',
+  medication: 'LISDEXAMFETAMINE',
+  medications: ['LISDEXAMFETAMINE'],
+  trackGlutenCasein: true,
+  avatarColor: '#8b5cf6',
+  waterGoalMl: 2600,
+  notes: 'Elvanse 30mg morgens. Fokus auf Darm-Hirn-Achse, Mikrobiom (35g Ballaststoffe) und stabile Dopamin-Vorstufen.',
+  createdAt: '2026-09-01T08:00:00.000Z',
+  updatedAt: '2026-09-27T08:00:00.000Z'
+};
+
+export const PRESET_MAX: UserProfile = {
+  id: 'profile-max-03',
+  name: 'Maximilian Weber',
+  age: 31,
+  gender: 'male',
+  heightCm: 186,
+  weightKg: 85,
+  bodyFatPct: 14,
+  leanBodyMassKg: 73.1,
+  activityLevel: 1.725,
+  goal: 'HYPERTROPHY',
+  neuroModifier: 'NONE',
+  medication: 'NONE',
+  medications: [],
+  trackGlutenCasein: false,
+  avatarColor: '#10b981',
+  waterGoalMl: 3500,
+  notes: 'Kraftsport & Muskelaufbau. Hohe Proteinzufuhr (170g+), Kreatin & Magnesium am Abend.',
+  createdAt: '2026-09-05T08:00:00.000Z',
+  updatedAt: '2026-09-27T08:00:00.000Z'
+};
+
+export const DEFAULT_PROFILES: UserProfile[] = [DEMO_PROFILE, PRESET_SARAH, PRESET_MAX];
+
+export const DEFAULT_MEAL_PRESETS: MealPreset[] = [
+  {
+    id: 'preset-adhd-breakfast',
+    title: '⚡ ADHS Power-Frühstück (Kinetik-Schutz)',
+    category: 'breakfast',
+    calories: 480,
+    proteinG: 28,
+    carbsG: 32,
+    fatG: 18,
+    fiberG: 6,
+    description: '3 Rühreier in Olivenöl, 1 Scheibe Sauerteigbrot mit Avocado. Mindestens 25g Protein vor Stimulanzien!'
+  },
+  {
+    id: 'preset-neuro-salmon',
+    title: '🧠 Neuro-Lachs mit Quinoa & Brokkoli',
+    category: 'lunch',
+    calories: 620,
+    proteinG: 44,
+    carbsG: 48,
+    fatG: 24,
+    fiberG: 8,
+    description: 'Reich an maritimem Omega-3 (EPA/DHA), Zink und Cholin.'
+  },
+  {
+    id: 'preset-magnesium-evening',
+    title: '🌙 Bioaktiver Abend-Snack (GABA & Schlaf)',
+    category: 'snack',
+    calories: 220,
+    proteinG: 14,
+    carbsG: 18,
+    fatG: 11,
+    fiberG: 4,
+    description: 'Kürbiskerne, griechischer Joghurt mit Heidelbeeren. Reich an Tryptophan und natürlichem Magnesium.'
+  }
+];
 
 export function generate30DaysDemoLogs(profile: UserProfile): DailyLogSummary[] {
   const plan = calculateNutrientPlan(profile);
@@ -288,10 +372,15 @@ export function generate30DaysDemoLogs(profile: UserProfile): DailyLogSummary[] 
         : 'Stabile Konzentration den ganzen Tag über, sanfter Ausklang.'
     };
 
+    const waterGoal = profile.waterGoalMl || 3000;
+    const waterDrunk = lowProteinMorning ? Math.round(waterGoal * 0.65) : Math.round(waterGoal * (0.9 + Math.random() * 0.2));
+
     logs.push({
       date: dateStr,
       entries,
       symptomLog,
+      waterMl: waterDrunk,
+      waterGoalMl: waterGoal,
       totals,
       scorePct,
       cofactorsMet,

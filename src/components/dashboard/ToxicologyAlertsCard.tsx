@@ -11,10 +11,10 @@ export const ToxicologyAlertsCard: React.FC<ToxicologyAlertsCardProps> = ({ repo
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 gap-3">
+        <div className="flex items-center space-x-2 min-w-0">
           <div
-            className={`p-2 rounded-lg ${
+            className={`p-2 rounded-lg shrink-0 ${
               overallStatus === 'CRITICAL'
                 ? 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
                 : overallStatus === 'ATTENTION'
@@ -28,18 +28,18 @@ export const ToxicologyAlertsCard: React.FC<ToxicologyAlertsCardProps> = ({ repo
               <ShieldAlert className="w-5 h-5" />
             )}
           </div>
-          <div>
-            <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Toxikologie- & Akkumulations-Audit (30 Tage)
+          <div className="min-w-0">
+            <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider truncate">
+              Toxikologie- &amp; Akkumulations-Audit (30 Tage)
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
               Prüfung kumulierender Mikronährstoffe gegen EFSA Upper Limits (UL)
             </p>
           </div>
         </div>
 
         <span
-          className={`px-2.5 py-1 text-xs font-bold rounded-lg border uppercase tracking-wider ${
+          className={`px-2.5 py-1 text-xs font-bold rounded-lg border uppercase tracking-wider shrink-0 ${
             overallStatus === 'CRITICAL'
               ? 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-300'
               : overallStatus === 'ATTENTION'

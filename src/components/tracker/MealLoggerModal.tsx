@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FoodItem, LogEntry, MealType, UserProfile } from '../../types';
 import { FOOD_DATABASE } from '../../data/foodDatabase';
 import { StorageService } from '../../services/storageService';
@@ -29,20 +29,14 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
   onSave,
   profile
 }) => {
-  if (!isOpen) return null;
-
   // Mode: 'database' | 'flat'
   const [entryMode, setEntryMode] = useState<'database' | 'flat'>('database');
   const [mealType, setMealType] = useState<MealType>('breakfast');
   const [time, setTime] = useState<string>('08:15');
 
   // Custom Foods Library
-  const [customFoods, setCustomFoods] = useState<FoodItem[]>([]);
+  const [customFoods, setCustomFoods] = useState<FoodItem[]>(() => StorageService.getCustomFoods());
   const [isCustomFoodModalOpen, setIsCustomFoodModalOpen] = useState(false);
-
-  useEffect(() => {
-    setCustomFoods(StorageService.getCustomFoods());
-  }, [isOpen]);
 
   const allAvailableFoods = [
     ...customFoods.map((f) => ({ ...f, isCustom: true })),
@@ -205,6 +199,8 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
@@ -307,7 +303,7 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
                       className="text-[11px] font-bold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center space-x-1 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>+ Eigenes Gericht anlegen</span>
+                      <span>Eigenes Gericht anlegen</span>
                     </button>
                   </div>
                   <select
@@ -578,6 +574,43 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
                           className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-1.5 font-mono"
                         />
                       </div>
+                      <div>
+                        <label className="block text-[10px] text-slate-500 mb-0.5">
+                          Vitamin B6 P5P (mg)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={flatVitaminB6}
+                          onChange={(e) => setFlatVitaminB6(parseFloat(e.target.value) || 0)}
+                          className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-1.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-slate-500 mb-0.5">
+                          Vitamin B12 (µg)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={flatVitaminB12}
+                          onChange={(e) => setFlatVitaminB12(parseFloat(e.target.value) || 0)}
+                          className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-1.5 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-slate-500 mb-0.5">
+                          Vitamin D3 (IE)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={flatVitaminD3}
+                          onChange={(e) => setFlatVitaminD3(parseFloat(e.target.value) || 0)}
+                          className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-1.5 font-mono"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -585,10 +618,10 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
             )}
 
             {/* Live Macro Summary Pill */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 grid grid-cols-4 gap-2 text-center">
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 grid grid-cols-5 gap-1.5 text-center">
               <div>
                 <div className="text-[10px] text-slate-400 font-semibold uppercase">Kalorien</div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">
+                <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-mono">
                   {Math.round(currentCalories)}
                 </div>
               </div>
@@ -596,7 +629,7 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">
                   Protein
                 </div>
-                <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                <div className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                   {Math.round(currentProtein)}g
                 </div>
               </div>
@@ -604,7 +637,7 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
                 <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-semibold uppercase">
                   Carbs
                 </div>
-                <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400 font-mono">
+                <div className="text-xs sm:text-sm font-bold text-cyan-600 dark:text-cyan-400 font-mono">
                   {Math.round(currentCarbs)}g
                 </div>
               </div>
@@ -612,8 +645,16 @@ export const MealLoggerModal: React.FC<MealLoggerModalProps> = ({
                 <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold uppercase">
                   Fett
                 </div>
-                <div className="text-sm font-bold text-amber-600 dark:text-amber-400 font-mono">
+                <div className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 font-mono">
                   {Math.round(currentFat)}g
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold uppercase">
+                  Ballastst.
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-teal-600 dark:text-teal-400 font-mono">
+                  {Math.round(currentFiber)}g
                 </div>
               </div>
             </div>
